@@ -42,6 +42,7 @@
             <div class="button-row">
                 <div class="usb-button-group">
                     <button id="btn-connect-usb">Connect USB</button>
+                    <button id="btn-connect-serial">Connect Serial</button>
                     <div class="usb-status-box">
                         <span id="usb-status" class="status disconnected">Disconnected</span>
                     </div>
@@ -58,10 +59,10 @@
         </div>
 
         <div id="browser-warning" class="browser-warning">
-            ⚠️ <strong>Browser Not Supported:</strong> WebUSB requires Chrome or Edge.
+            ⚠️ <strong>Browser Not Supported:</strong> needs WebUSB (Chrome/Edge) or WebSerial (Chrome/Edge/Firefox 151+).
         </div>
         <footer class="footer">
-            <p>Version: 1.1.0</p>
+            <p>Version: 1.2.0</p>
             <p>Requires <a href="https://github.com/starlarkus/GBLink-Firmware" target="_blank">USB
                     Firmware</a> - <a href="https://github.com/starlarkus/gblink-multiboot-web"
                     target="_blank">Source</a>
@@ -69,6 +70,7 @@
         </footer>
     </div>
     <script src="usb_connection.js"></script>
+    <script src="serial_connection.js"></script>
     <script src="multiboot.js"></script>
     <script src="app.js"></script>
 </body>

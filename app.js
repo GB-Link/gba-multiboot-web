@@ -5,7 +5,7 @@
 
 class App {
     constructor() {
-        this.usb = new UsbConnection();
+        this.usb = null;  // chosen lazily on first connect (UsbConnection or SerialConnection)
         this.romData = null;
         this.romName = null;
 
@@ -17,6 +17,7 @@ class App {
             fileSize: document.getElementById('file-size'),
             btnClearFile: document.getElementById('btn-clear-file'),
             btnConnectUsb: document.getElementById('btn-connect-usb'),
+            btnConnectSerial: document.getElementById('btn-connect-serial'),
             btnSendMultiboot: document.getElementById('btn-send-multiboot'),
             usbStatus: document.getElementById('usb-status'),
             btnDarkMode: document.getElementById('btn-dark-mode'),
@@ -28,13 +29,18 @@ class App {
     }
 
     init() {
-        // Check WebUSB support
-        if (!('usb' in navigator)) {
+        const hasUsb = 'usb' in navigator;
+        const hasSerial = 'serial' in navigator;
+
+        if (!hasUsb && !hasSerial) {
             this.elements.browserWarning.classList.add('show');
             this.elements.btnConnectUsb.disabled = true;
-            this.log("WebUSB not supported. Please use Chrome or Edge.", "error");
+            this.elements.btnConnectSerial.disabled = true;
+            this.log("Neither WebUSB nor WebSerial supported in this browser.", "error");
             return;
         }
+        if (!hasUsb) this.elements.btnConnectUsb.disabled = true;
+        if (!hasSerial) this.elements.btnConnectSerial.disabled = true;
 
         this.attachListeners();
         this.log("Ready. Select a .gba file to begin.");
@@ -73,7 +79,12 @@ class App {
 
         // USB
         this.elements.btnConnectUsb.addEventListener('click', () => {
-            this.connectUsb();
+            this.connect('usb');
+        });
+
+        // Serial
+        this.elements.btnConnectSerial.addEventListener('click', () => {
+            this.connect('serial');
         });
 
         // Multiboot
@@ -119,17 +130,22 @@ class App {
         this.log("File cleared");
     }
 
-    async connectUsb() {
+    async connect(kind) {
         try {
-            this.log("Requesting USB device...");
+            // Tear down any existing connection so switching transports works cleanly
+            if (this.usb && this.usb.isConnected) {
+                try { await this.usb.disconnect(); } catch (_) {}
+            }
+            this.usb = kind === 'serial' ? new SerialConnection() : new UsbConnection();
+            this.log(`Requesting ${kind === 'serial' ? 'serial port' : 'USB device'}...`);
             await this.usb.connect();
 
-            this.elements.usbStatus.textContent = "Connected";
+            this.elements.usbStatus.textContent = `Connected (${kind})`;
             this.elements.usbStatus.className = "status connected";
-            this.log("USB connected!", "success");
+            this.log(`${kind === 'serial' ? 'Serial' : 'USB'} connected!`, "success");
             this.updateButtonState();
         } catch (error) {
-            this.log(`USB connection failed: ${error.message}`, "error");
+            this.log(`${kind} connection failed: ${error.message}`, "error");
         }
     }
 
@@ -139,8 +155,8 @@ class App {
             return;
         }
 
-        if (!this.usb.isConnected) {
-            this.log("Please connect USB first", "error");
+        if (!this.usb || !this.usb.isConnected) {
+            this.log("Please connect first (USB or Serial)", "error");
             return;
         }
 
@@ -167,7 +183,7 @@ class App {
     }
 
     updateButtonState() {
-        const canSend = this.romData && this.usb.isConnected;
+        const canSend = this.romData && this.usb && this.usb.isConnected;
         this.elements.btnSendMultiboot.disabled = !canSend;
     }
 
