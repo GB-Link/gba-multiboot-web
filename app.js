@@ -95,8 +95,8 @@ class App {
     }
 
     async loadFile(file) {
-        if (!file.name.match(/\.(gba|bin)$/i)) {
-            this.log("Please select a .gba or .bin file", "error");
+        if (!file.name.match(/\.(gba|bin|mb)$/i)) {
+            this.log("Please select a .gba, .bin or .mb file", "error");
             return;
         }
 
