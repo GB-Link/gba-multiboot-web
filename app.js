@@ -44,7 +44,7 @@ class App {
             this.transport === 'serial' ? 'Connect Serial' : 'Connect USB';
 
         this.attachListeners();
-        this.log("Ready. Select a .gba file to begin.");
+        this.log("Ready. Select a .gba, .bin or .mb file to begin.");
     }
 
     attachListeners() {
