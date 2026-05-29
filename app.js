@@ -17,7 +17,6 @@ class App {
             fileSize: document.getElementById('file-size'),
             btnClearFile: document.getElementById('btn-clear-file'),
             btnConnectUsb: document.getElementById('btn-connect-usb'),
-            btnConnectSerial: document.getElementById('btn-connect-serial'),
             btnSendMultiboot: document.getElementById('btn-send-multiboot'),
             usbStatus: document.getElementById('usb-status'),
             btnDarkMode: document.getElementById('btn-dark-mode'),
@@ -32,15 +31,17 @@ class App {
         const hasUsb = 'usb' in navigator;
         const hasSerial = 'serial' in navigator;
 
-        if (!hasUsb && !hasSerial) {
+        // Prefer WebUSB; fall back to WebSerial only when WebUSB is unavailable.
+        this.transport = hasUsb ? 'usb' : (hasSerial ? 'serial' : null);
+
+        if (!this.transport) {
             this.elements.browserWarning.classList.add('show');
             this.elements.btnConnectUsb.disabled = true;
-            this.elements.btnConnectSerial.disabled = true;
             this.log("Neither WebUSB nor WebSerial supported in this browser.", "error");
             return;
         }
-        if (!hasUsb) this.elements.btnConnectUsb.disabled = true;
-        if (!hasSerial) this.elements.btnConnectSerial.disabled = true;
+        this.elements.btnConnectUsb.textContent =
+            this.transport === 'serial' ? 'Connect Serial' : 'Connect USB';
 
         this.attachListeners();
         this.log("Ready. Select a .gba file to begin.");
@@ -77,14 +78,9 @@ class App {
             this.clearFile();
         });
 
-        // USB
+        // Connect (auto-selected transport: WebUSB preferred, WebSerial fallback)
         this.elements.btnConnectUsb.addEventListener('click', () => {
-            this.connect('usb');
-        });
-
-        // Serial
-        this.elements.btnConnectSerial.addEventListener('click', () => {
-            this.connect('serial');
+            this.connect(this.transport);
         });
 
         // Multiboot
