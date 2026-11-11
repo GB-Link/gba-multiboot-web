@@ -66,7 +66,7 @@ class SerialConnection {
         try {
             // GBLink unified firmware uses Zephyr default VID
             this.port = await navigator.serial.requestPort({
-                filters: [{ usbVendorId: 0x2FE3 }]
+                filters: [{ usbVendorId: 0x2FE3 }, { usbVendorId: 0x1209, usbProductId: 0xB011 }]
             });
             // CDC-ACM ignores baud rate but WebSerial requires a value
             await this.port.open({ baudRate: 115200 });
